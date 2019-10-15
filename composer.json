@@ -1,0 +1,28 @@
+{
+    "name": "wfs/master-slave-redis",
+    "description": "",
+    "type": "library",
+    "require": {
+        "php": "^7.2",
+        "ext-redis": "^5.0"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Takahiro Fujita",
+            "email": "takahiro.fujita@gree.net"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require-dev": {
+        "phpunit/phpunit": "^8.4",
+        "squizlabs/php_codesniffer": "^3.5",
+        "phan/phan": "^2.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Wfs\\MasterSlaveRedis\\": "src/",
+            "Wfs\\MasterSlaveRedis\\Tests\\": "tests/"
+        }
+    }
+}
