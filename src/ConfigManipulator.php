@@ -5,7 +5,7 @@ namespace Wfs\MasterSlaveRedis;
 final class ConfigManipulator
 {
     const DEFAULT_PORT = 6379;
-    const DEFAULT_TIMEOUT = 3;
+    const DEFAULT_TIMEOUT = 0;
 
     /**
      * @param array $assocHostConfig = [
@@ -53,7 +53,7 @@ final class ConfigManipulator
      */
     static public function pickupMasterConfig(array $assocConfig): array
     {
-        self::raiseIfInvalidConfig($assocConfig);
+        self::throwIfInvalidConfig($assocConfig);
         return self::fillHostDefaultValue($assocConfig['master']);
     }
 
@@ -80,7 +80,7 @@ final class ConfigManipulator
      */
     static public function pickupSlaveConfig(array $assocConfig): array
     {
-        self::raiseIfInvalidConfig($assocConfig);
+        self::throwIfInvalidConfig($assocConfig);
         if (! isset($assocConfig['slave']) || count($assocConfig['slave']) === 0) {
             return self::pickupMasterConfig($assocConfig);
         }
@@ -138,7 +138,7 @@ final class ConfigManipulator
         return true;
     }
 
-    static private function raiseIfInvalidConfig(array $assocConfig, bool $checkOptionalConfig = false)
+    static private function throwIfInvalidConfig(array $assocConfig, bool $checkOptionalConfig = false)
     {
         if (! self::isValidConfig($assocConfig, $checkOptionalConfig)) {
             throw new \InvalidArgumentException("invalid config");
