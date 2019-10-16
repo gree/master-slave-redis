@@ -81,24 +81,33 @@ final class ConfigManipulator
     static public function pickupSlaveConfig(array $assocConfig): array
     {
         self::throwIfInvalidConfig($assocConfig);
+
+        // 空ならmasterを使う
         if (! isset($assocConfig['slave']) || count($assocConfig['slave']) === 0) {
             return self::pickupMasterConfig($assocConfig);
         }
+
+        // 乱択
         $index = array_rand($assocConfig['slave']);
         return self::fillHostDefaultValue($assocConfig['slave'][$index]);
     }
 
     static private function isValidHostConfig(array $assocHostConfig, bool $checkOptionalKeys = false): bool
     {
+        // hostは必須
         if (! array_key_exists('host', $assocHostConfig)) {
             return false;
         }
+
+        // port, timeoutは$checkOptionalKeys=trueの時だけチェック
         if ($checkOptionalKeys && ! array_key_exists('port', $assocHostConfig)) {
             return false;
         }
         if ($checkOptionalKeys && ! array_key_exists('timeout', $assocHostConfig)) {
             return false;
         }
+
+        // 型チェック
         if (! is_string($assocHostConfig['host'])) {
             return false;
         }
@@ -108,6 +117,8 @@ final class ConfigManipulator
         if (array_key_exists('timeout', $assocHostConfig) && ! is_int($assocHostConfig['timeout'])) {
             return false;
         }
+
+        // 不要キーチェック
         if (count(array_diff(array_keys($assocHostConfig), ['host', 'port', 'timeout'])) > 0) {
             return false;
         }
@@ -116,6 +127,7 @@ final class ConfigManipulator
 
     static private function isValidConfig(array $assocConfig, bool $checkOptionalKeys = false): bool
     {
+        // masterは必須。中身も正しく
         if (! array_key_exists('master', $assocConfig)) {
             return false;
         }
@@ -123,6 +135,7 @@ final class ConfigManipulator
             return false;
         }
 
+        // slaveも必須だが、空でもよい
         if (! array_key_exists('slave', $assocConfig)) {
             return false;
         }
@@ -130,6 +143,7 @@ final class ConfigManipulator
             return false;
         }
 
+        // 存在しているslave設定は正しくなければならない
         foreach ($assocConfig['slave'] as $assocSlaveConfig) {
             if (! self::isValidHostConfig($assocSlaveConfig, $checkOptionalKeys)) {
                 return false;
