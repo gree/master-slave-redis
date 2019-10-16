@@ -7,10 +7,15 @@
          convertNoticesToExceptions="true"
          convertWarningsToExceptions="true"
          processIsolation="false"
+         defaultTestSuite="Small"
          stopOnFailure="false">
     <testsuites>
-        <testsuite name="Unit">
-            <directory suffix="Test.php">./tests</directory>
+        <testsuite name="Small">
+            <directory suffix="Test.php">./tests/Small</directory>
+        </testsuite>
+        <testsuite name="Medium">
+            <directory suffix="Test.php">./tests/Small</directory>
+            <directory suffix="Test.php">./tests/Medium</directory>
         </testsuite>
     </testsuites>
     <filter>

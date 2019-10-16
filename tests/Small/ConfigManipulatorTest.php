@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Wfs\MasterSlaveRedis\Tests;
+namespace Wfs\MasterSlaveRedis\Tests\Small;
 
 use Closure;
 use Wfs\MasterSlaveRedis\ConfigManipulator;

@@ -3,6 +3,8 @@ MasterSlaveRedis
 
 Redisのレプリカを使えるようにする。
 
+## Usage
+
 ```php
 $manager = new RedisManager([
     "master" => [
@@ -69,3 +71,10 @@ $manager = new RedisManager([
 $manager->getMaster()->set("key", 1); // master-host
 $manager->getSlave()->get("key"); // master-host, use master
 ```
+
+## Test design
+
+|Feature|Small|Medium|
+|---|---|---|
+|Server Access|No|Yes|
+|Logic|Yes|Yes|

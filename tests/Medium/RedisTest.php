@@ -1,6 +1,6 @@
 <?php
 
-namespace Wfs\MasterSlaveRedis\Tests;
+namespace Wfs\MasterSlaveRedis\Tests\Medium;
 
 use Wfs\MasterSlaveRedis\RedisManager;
 use PHPUnit\Framework\TestCase;
