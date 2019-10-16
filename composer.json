@@ -1,5 +1,6 @@
 {
     "name": "wfs/master-slave-redis",
+    "version": "0.0.1",
     "description": "",
     "type": "library",
     "require": {
