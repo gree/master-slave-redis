@@ -20,7 +20,7 @@ class RedisManager
     /**
      * @param array $hostConfig
      * @param int $retry
-     * @param int $retry_interval
+     * @param int $retry_interval msec
      * @return \Redis
      * @throws RedisManagerException
      */
@@ -37,6 +37,7 @@ class RedisManager
             try {
                 $connection->pconnect($ip, $hostConfig['port'], $hostConfig['timeout']);
             } catch (\RedisException $e) {
+                usleep($retry_interval * 1000);
                 continue;
             }
             return $connection;
@@ -51,22 +52,28 @@ class RedisManager
     }
 
     /**
+     * @param int $retry
+     * @param int $retry_interval
      * @return \Redis
      * @throws RedisManagerException
      */
-    public function getMaster(): \Redis
+    public function getMaster(int $retry = self::DEFAULT_RETRY_NUM,
+                              int $retry_interval = self::DEFAULT_RETRY_INTERVAL): \Redis
     {
         $master = ConfigManipulator::pickupMasterConfig($this->config);
-        return $this->connect($master);
+        return $this->connect($master, $retry, $retry_interval);
     }
 
     /**
+     * @param int $retry
+     * @param int $retry_interval
      * @return \Redis
      * @throws RedisManagerException
      */
-    public function getSlave(): \Redis
+    public function getSlave(int $retry = self::DEFAULT_RETRY_NUM,
+                             int $retry_interval = self::DEFAULT_RETRY_INTERVAL): \Redis
     {
         $slave = ConfigManipulator::pickupSlaveConfig($this->config);
-        return $this->connect($slave);
+        return $this->connect($slave, $retry, $retry_interval);
     }
 }
