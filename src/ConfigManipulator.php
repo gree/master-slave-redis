@@ -19,7 +19,7 @@ final class ConfigManipulator
      *      "timeout" => 3,
      *  ]
      */
-    static private function fillHostDefaultValue(array $assocHostConfig): array
+    private static function fillHostDefaultValue(array $assocHostConfig): array
     {
         if (! isset($assocHostConfig['port'])) {
             $assocHostConfig['port'] = self::DEFAULT_PORT;
@@ -51,7 +51,7 @@ final class ConfigManipulator
      *      "timeout" => 3,
      *  ]
      */
-    static public function pickupMasterConfig(array $assocConfig): array
+    public static function pickupMasterConfig(array $assocConfig): array
     {
         self::throwIfInvalidConfig($assocConfig);
         return self::fillHostDefaultValue($assocConfig['master']);
@@ -78,7 +78,7 @@ final class ConfigManipulator
      *      "timeout" => 3,
      *  ]
      */
-    static public function pickupSlaveConfig(array $assocConfig): array
+    public static function pickupSlaveConfig(array $assocConfig): array
     {
         self::throwIfInvalidConfig($assocConfig);
 
@@ -92,7 +92,7 @@ final class ConfigManipulator
         return self::fillHostDefaultValue($assocConfig['slave'][$index]);
     }
 
-    static private function isValidHostConfig(array $assocHostConfig, bool $checkOptionalKeys = false): bool
+    private static function isValidHostConfig(array $assocHostConfig, bool $checkOptionalKeys = false): bool
     {
         // hostは必須
         if (! array_key_exists('host', $assocHostConfig)) {
@@ -125,7 +125,7 @@ final class ConfigManipulator
         return true;
     }
 
-    static private function isValidConfig(array $assocConfig, bool $checkOptionalKeys = false): bool
+    private static function isValidConfig(array $assocConfig, bool $checkOptionalKeys = false): bool
     {
         // masterは必須。中身も正しく
         if (! array_key_exists('master', $assocConfig)) {
@@ -152,7 +152,7 @@ final class ConfigManipulator
         return true;
     }
 
-    static private function throwIfInvalidConfig(array $assocConfig, bool $checkOptionalConfig = false)
+    private static function throwIfInvalidConfig(array $assocConfig, bool $checkOptionalConfig = false)
     {
         if (! self::isValidConfig($assocConfig, $checkOptionalConfig)) {
             throw new \InvalidArgumentException("invalid config");

@@ -5,6 +5,7 @@ namespace Wfs\MasterSlaveRedis;
 class RedisManager
 {
     const DEFAULT_RETRY_NUM = 5;
+    const DEFAULT_RETRY_INTERVAL = 1000;
 
     /**
      * @var array
@@ -19,11 +20,15 @@ class RedisManager
     /**
      * @param array $hostConfig
      * @param int $retry
+     * @param int $retry_interval
      * @return \Redis
      * @throws RedisManagerException
      */
-    private function connect(array $hostConfig, int $retry = self::DEFAULT_RETRY_NUM): \Redis
-    {
+    private function connect(
+        array $hostConfig,
+        int $retry = self::DEFAULT_RETRY_NUM,
+        int $retry_interval = self::DEFAULT_RETRY_INTERVAL
+    ): \Redis {
         // pconnectはIPアドレスでする。
         $ip = gethostbyname($hostConfig['host']);
         $connection = new \Redis();
@@ -36,8 +41,13 @@ class RedisManager
             }
             return $connection;
         }
-        throw new RedisManagerException(sprintf("Con't connect redis server: %s(%s):%d, t/o=%d",
-            $hostConfig['host'], $ip, $hostConfig['port'], $hostConfig['timeout']));
+        throw new RedisManagerException(sprintf(
+            "Con't connect redis server: %s(%s):%d, t/o=%d",
+            $hostConfig['host'],
+            $ip,
+            $hostConfig['port'],
+            $hostConfig['timeout']
+        ));
     }
 
     /**
