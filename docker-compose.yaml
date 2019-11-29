@@ -16,7 +16,8 @@ services:
     depends_on:
       - redis-master
     command: redis-server --slaveof redis-master 6379
-  phpunit:
+  phpunit-full:
+    image: phpunit
     build: .
     volumes:
       - .:/var/www/html
@@ -24,5 +25,11 @@ services:
       - redis-master
       - redis-slave1
       - redis-slave2
-    command: ./vendor/bin/phpunit --testsuite Medium
+    command: ./vendor/bin/phpunit --testsuite Medium --coverage-text
+  phpunit:
+    image: phpunit
+    build: .
+    volumes:
+      - .:/var/www/html
+    command: ./vendor/bin/phpunit --testsuite Small --coverage-text
 
