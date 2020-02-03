@@ -18,8 +18,8 @@ RUN docker-php-source extract \
 FROM base as composer
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    git=1:2.20.1-2 \
-    ssh=1:7.9p1-10 \
+    git \
+    ssh \
  && rm -rf /var/lib/apt/lists/*
 
 # hadolint ignore=DL3022
