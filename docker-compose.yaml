@@ -3,16 +3,13 @@ version: '3.4'
 services:
   redis-master:
     image: redis:5.0.6-alpine
-    container_name: redis-master
   redis-slave1:
     image: redis:5.0.6-alpine
-    container_name: redis-slave1
     depends_on:
       - redis-master
     command: redis-server --slaveof redis-master 6379
   redis-slave2:
     image: redis:5.0.6-alpine
-    container_name: redis-slave2
     depends_on:
       - redis-master
     command: redis-server --slaveof redis-master 6379
@@ -32,4 +29,3 @@ services:
     volumes:
       - .:/var/www/html
     command: ./vendor/bin/phpunit --testsuite Small --coverage-text
-

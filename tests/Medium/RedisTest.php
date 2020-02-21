@@ -2,6 +2,7 @@
 
 namespace Wfs\MasterSlaveRedis\Tests\Medium;
 
+use Redis;
 use Wfs\MasterSlaveRedis\RedisManager;
 use PHPUnit\Framework\TestCase;
 use Wfs\MasterSlaveRedis\RedisManagerException;
@@ -91,5 +92,61 @@ class RedisTest extends TestCase
         $ret = $manager->getMaster()->info();
         // closeの後は１回増える
         $this->assertSame($startConnections + 1, $ret['total_connections_received']);
+    }
+
+    public function testDnsRoundRobin()
+    {
+        $manager = new RedisManager([
+            'master' => [
+                'host' => 'redis-master',
+            ],
+            'slave' => [
+                [
+                    'host' => 'redis-slave1',
+                ]
+            ]
+        ]);
+        // total_connections_received: 累積接続コネクション数
+        $addressList = gethostbynamel('redis-slave1');
+        $this->assertCount(4, $addressList,
+            <<< EOT
+You must run this test with the following command:
+docker-compose up -d --scale redis-slave1=4 redis-slave1
+docker-compose run --rm phpunit-full
+EOT
+        );
+
+        $runIds = [];
+        for ($i = 0; $i < 100; $i++) {
+            $ret = $manager->getSlave()->info();
+            $runIds[] = $ret['run_id'];
+        }
+        $uniqueRunIds = array_unique($runIds);
+
+        $this->assertCount(4, $uniqueRunIds);
+    }
+
+    public function testDnsRoundRobinWithPureRedisObject()
+    {
+        $redis = new Redis();
+        // total_connections_received: 累積接続コネクション数
+        $addressList = gethostbynamel('redis-slave1');
+        $this->assertCount(4, $addressList,
+            <<< EOT
+You must run this test with the following command:
+docker-compose up -d --scale redis-slave1=4 redis-slave1
+docker-compose run --rm phpunit-full
+EOT
+        );
+
+        $runIds = [];
+        for ($i = 0; $i < 100; $i++) {
+            $ret = $redis->pconnect('redis-slave1');
+            $runIds[] = $ret['run_id'];
+        }
+        $uniqueRunIds = array_unique($runIds);
+
+        // php-redis manage connection pool with "host-name"
+        $this->assertCount(1, $uniqueRunIds);
     }
 }

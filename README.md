@@ -72,6 +72,13 @@ $manager->getMaster()->set("key", 1); // master-host
 $manager->getSlave()->get("key"); // master-host, use master
 ```
 
+## Test
+
+```php
+docker-compose up -d --scale redis-slave1=4 redis-slave1
+docker-compose run --rm phpunit-full
+```
+
 ## Test design
 
 |Feature|Small|Medium|
