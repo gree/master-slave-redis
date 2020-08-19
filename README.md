@@ -75,7 +75,7 @@ $manager->getSlave()->get("key"); // master-host, use master
 ## Test
 
 ```php
-docker-compose up -d --scale redis-slave1=4 redis-slave1
+docker-compose up -d --scale redis-replica1=4 redis-replica1
 docker-compose run --rm phpunit-full
 ```
 

@@ -1,9 +1,13 @@
-<?php declare(strict_types=1);
+<?php
 
-namespace Wfs\MasterSlaveRedis;
+declare(strict_types=1);
+
+namespace Wfs\PrimaryReplicaRedis;
 
 final class ConfigManipulator
 {
+    const PRIMARY_KEY = 'primary';
+    const REPLICA_KEY = 'replica';
     const DEFAULT_PORT = 6379;
     const DEFAULT_TIMEOUT = 0;
 
@@ -32,12 +36,12 @@ final class ConfigManipulator
 
     /**
      * @param array $assocConfig = [
-     *      "master" => [
+     *      "primary" => [
      *          "host" => "host-name",
      *          "port" => 6379,
      *          "timeout" => 3,
      *      ],
-     *      "slave" => [
+     *      "replica" => [
      *          [
      *              "host" => "host-name",
      *              "port" => 6379,
@@ -51,20 +55,20 @@ final class ConfigManipulator
      *      "timeout" => 3,
      *  ]
      */
-    public static function pickupMasterConfig(array $assocConfig): array
+    public static function pickupPrimaryConfig(array $assocConfig): array
     {
         self::throwIfInvalidConfig($assocConfig);
-        return self::fillHostDefaultValue($assocConfig['master']);
+        return self::fillHostDefaultValue($assocConfig[self::PRIMARY_KEY]);
     }
 
     /**
      * @param array $assocConfig = [
-     *      "master" => [
+     *      "primary" => [
      *          "host" => "host-name",
      *          "port" => 6379,
      *          "timeout" => 3,
      *      ],
-     *      "slave" => [
+     *      "replica" => [
      *          [
      *              "host" => "host-name",
      *              "port" => 6379,
@@ -78,18 +82,18 @@ final class ConfigManipulator
      *      "timeout" => 3,
      *  ]
      */
-    public static function pickupSlaveConfig(array $assocConfig): array
+    public static function pickupReplicaConfig(array $assocConfig): array
     {
         self::throwIfInvalidConfig($assocConfig);
 
-        // 空ならmasterを使う
-        if (! isset($assocConfig['slave']) || count($assocConfig['slave']) === 0) {
-            return self::pickupMasterConfig($assocConfig);
+        // 空ならprimaryを使う
+        if (! isset($assocConfig[self::REPLICA_KEY]) || count($assocConfig[self::REPLICA_KEY]) === 0) {
+            return self::pickupPrimaryConfig($assocConfig);
         }
 
         // 乱択
-        $index = array_rand($assocConfig['slave']);
-        return self::fillHostDefaultValue($assocConfig['slave'][$index]);
+        $index = array_rand($assocConfig[self::REPLICA_KEY]);
+        return self::fillHostDefaultValue($assocConfig[self::REPLICA_KEY][$index]);
     }
 
     private static function isValidHostConfig(array $assocHostConfig, bool $checkOptionalKeys = false): bool
@@ -127,25 +131,25 @@ final class ConfigManipulator
 
     private static function isValidConfig(array $assocConfig, bool $checkOptionalKeys = false): bool
     {
-        // masterは必須。中身も正しく
-        if (! array_key_exists('master', $assocConfig)) {
+        // primaryは必須。中身も正しく
+        if (! array_key_exists(self::PRIMARY_KEY, $assocConfig)) {
             return false;
         }
-        if (! self::isValidHostConfig($assocConfig['master'], $checkOptionalKeys)) {
-            return false;
-        }
-
-        // slaveも必須だが、空でもよい
-        if (! array_key_exists('slave', $assocConfig)) {
-            return false;
-        }
-        if (! is_iterable($assocConfig['slave'])) {
+        if (! self::isValidHostConfig($assocConfig[self::PRIMARY_KEY], $checkOptionalKeys)) {
             return false;
         }
 
-        // 存在しているslave設定は正しくなければならない
-        foreach ($assocConfig['slave'] as $assocSlaveConfig) {
-            if (! self::isValidHostConfig($assocSlaveConfig, $checkOptionalKeys)) {
+        // replicaも必須だが、空でもよい
+        if (! array_key_exists(self::REPLICA_KEY, $assocConfig)) {
+            return false;
+        }
+        if (! is_iterable($assocConfig[self::REPLICA_KEY])) {
+            return false;
+        }
+
+        // 存在しているreplica設定は正しくなければならない
+        foreach ($assocConfig[self::REPLICA_KEY] as $assocReplicaConfig) {
+            if (! self::isValidHostConfig($assocReplicaConfig, $checkOptionalKeys)) {
                 return false;
             }
         }

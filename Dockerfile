@@ -1,6 +1,5 @@
-# syntax = docker/dockerfile:experimental
 ARG PHP_VERSION=7.3.10
-ARG COMPOSER_VERSION=1.9.0
+ARG COMPOSER_VERSION=1.10.10
 
 # PHPの土台をつくるステージ
 FROM php:${PHP_VERSION}-cli AS base
@@ -13,9 +12,6 @@ RUN docker-php-source extract \
  && pecl install redis xdebug \
  && docker-php-ext-enable redis xdebug \
  && docker-php-source delete
-
-# composerの準備をするステージ
-FROM base as composer
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     git \

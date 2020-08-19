@@ -1,27 +1,27 @@
 version: '3.4'
 
 services:
-  redis-master:
+  redis-primary:
     image: redis:5.0.6-alpine
-  redis-slave1:
-    image: redis:5.0.6-alpine
-    depends_on:
-      - redis-master
-    command: redis-server --slaveof redis-master 6379
-  redis-slave2:
+  redis-replica1:
     image: redis:5.0.6-alpine
     depends_on:
-      - redis-master
-    command: redis-server --slaveof redis-master 6379
+      - redis-primary
+    command: redis-server --replicaof redis-primary 6379
+  redis-replica2:
+    image: redis:5.0.6-alpine
+    depends_on:
+      - redis-primary
+    command: redis-server --replicaof redis-primary 6379
   phpunit-full:
     image: phpunit
     build: .
     volumes:
       - .:/var/www/html
     depends_on:
-      - redis-master
-      - redis-slave1
-      - redis-slave2
+      - redis-primary
+      - redis-replica1
+      - redis-replica2
     command: ./vendor/bin/phpunit --testsuite Medium --coverage-text
   phpunit:
     image: phpunit
@@ -29,3 +29,10 @@ services:
     volumes:
       - .:/var/www/html
     command: ./vendor/bin/phpunit --testsuite Small --coverage-text
+  composer:
+    image: phpunit
+    build: .
+    volumes:
+      - .:/var/www/html
+    entrypoint: composer
+
