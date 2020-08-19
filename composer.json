@@ -1,5 +1,5 @@
 {
-    "name": "wfs/master-slave-redis",
+    "name": "wfs/primary-replica-redis",
     "version": "1.0.0",
     "description": "",
     "type": "library",
@@ -22,8 +22,13 @@
     },
     "autoload": {
         "psr-4": {
-            "Wfs\\MasterSlaveRedis\\": "src/",
-            "Wfs\\MasterSlaveRedis\\Tests\\": "tests/"
+            "Wfs\\PrimaryReplicaRedis\\": "src/",
+            "Wfs\\PrimaryReplicaRedis\\Tests\\": "tests/"
         }
+    },
+    "scripts": {
+        "phpcs": "phpcs --standard=PSR12 src",
+        "phpcbf": "phpcbf --standard=PSR12 src",
+        "phan": "phan"
     }
 }

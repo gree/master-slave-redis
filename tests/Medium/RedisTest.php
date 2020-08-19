@@ -1,95 +1,95 @@
 <?php
 
-namespace Wfs\MasterSlaveRedis\Tests\Medium;
+namespace Wfs\PrimaryReplicaRedis\Tests\Medium;
 
 use Redis;
-use Wfs\MasterSlaveRedis\RedisManager;
+use Wfs\PrimaryReplicaRedis\RedisManager;
 use PHPUnit\Framework\TestCase;
-use Wfs\MasterSlaveRedis\RedisManagerException;
+use Wfs\PrimaryReplicaRedis\RedisManagerException;
 
 class RedisTest extends TestCase
 {
-    public function testWriteMasterReadSlave()
+    public function testWritePrimaryReadReplica()
     {
         $manager = new RedisManager([
-            'master' => [
-                'host' => 'redis-master',
+            'primary' => [
+                'host' => 'redis-primary',
             ],
-            'slave' => [
+            'replica' => [
                 [
-                    'host' => 'redis-slave1',
+                    'host' => 'redis-replica1',
                 ]
             ]
         ]);
         $expected = sprintf("%d", (new \DateTime())->getTimestamp());
-        $manager->getMaster()->del("key1");
-        $actual = $manager->getSlave()->get("key1");
+        $manager->getPrimary()->del("key1");
+        $actual = $manager->getReplica()->get("key1");
         $this->assertFalse($actual);
-        $manager->getMaster()->set("key1", $expected);
-        $actual = $manager->getSlave()->get("key1");
+        $manager->getPrimary()->set("key1", $expected);
+        $actual = $manager->getReplica()->get("key1");
         $this->assertSame($expected, $actual);
     }
 
-    public function testWriteSlave()
+    public function testWriteReplica()
     {
         $manager = new RedisManager([
-            'master' => [
-                'host' => 'redis-master',
+            'primary' => [
+                'host' => 'redis-primary',
             ],
-            'slave' => [
+            'replica' => [
                 [
-                    'host' => 'redis-slave1',
+                    'host' => 'redis-replica1',
                 ]
             ]
         ]);
         $this->expectException(\RedisException::class);
         $this->expectDeprecationMessage("READONLY You can't write against a read only replica.");
-        $manager->getSlave()->del("key1");
+        $manager->getReplica()->del("key1");
     }
 
     public function testConnectionError()
     {
         $manager = new RedisManager([
-            'master' => [
-                'host' => 'redis-master',
+            'primary' => [
+                'host' => 'redis-primary',
                 'port' => 1234,
             ],
-            'slave' => [
+            'replica' => [
                 [
-                    'host' => 'redis-slave1',
+                    'host' => 'redis-replica1',
                 ]
             ]
         ]);
         $this->expectException(RedisManagerException::class);
-        $manager->getMaster()->info();
+        $manager->getPrimary()->info();
     }
 
     public function testPersistent()
     {
         $manager = new RedisManager([
-            'master' => [
-                'host' => 'redis-master',
+            'primary' => [
+                'host' => 'redis-primary',
             ],
-            'slave' => [
+            'replica' => [
                 [
-                    'host' => 'redis-slave1',
+                    'host' => 'redis-replica1',
                 ]
             ]
         ]);
         // total_connections_received: 累積接続コネクション数
 
-        $ret = $manager->getMaster()->info();
+        $ret = $manager->getPrimary()->info();
         $startConnections = $ret['total_connections_received'];
-        $ret = $manager->getMaster()->info();
-        $ret = $manager->getMaster()->info();
-        $ret = $manager->getMaster()->info();
-        $ret = $manager->getMaster()->info();
-        $ret = $manager->getMaster()->info();
-        // getMaster(pconnect)を繰り返してもコネクション接続回数が増えない
+        $ret = $manager->getPrimary()->info();
+        $ret = $manager->getPrimary()->info();
+        $ret = $manager->getPrimary()->info();
+        $ret = $manager->getPrimary()->info();
+        $ret = $manager->getPrimary()->info();
+        // getPrimary(pconnect)を繰り返してもコネクション接続回数が増えない
         $this->assertSame($startConnections, $ret['total_connections_received']);
 
-        $manager->getMaster()->close();
-        $ret = $manager->getMaster()->info();
+        $manager->getPrimary()->close();
+        $ret = $manager->getPrimary()->info();
         // closeの後は１回増える
         $this->assertSame($startConnections + 1, $ret['total_connections_received']);
     }
@@ -97,28 +97,28 @@ class RedisTest extends TestCase
     public function testDnsRoundRobin()
     {
         $manager = new RedisManager([
-            'master' => [
-                'host' => 'redis-master',
+            'primary' => [
+                'host' => 'redis-primary',
             ],
-            'slave' => [
+            'replica' => [
                 [
-                    'host' => 'redis-slave1',
+                    'host' => 'redis-replica1',
                 ]
             ]
         ]);
         // total_connections_received: 累積接続コネクション数
-        $addressList = gethostbynamel('redis-slave1');
+        $addressList = gethostbynamel('redis-replica1');
         $this->assertCount(4, $addressList,
             <<< EOT
 You must run this test with the following command:
-docker-compose up -d --scale redis-slave1=4 redis-slave1
+docker-compose up -d --scale redis-replica1=4 redis-replica1
 docker-compose run --rm phpunit-full
 EOT
         );
 
         $runIds = [];
         for ($i = 0; $i < 100; $i++) {
-            $ret = $manager->getSlave()->info();
+            $ret = $manager->getReplica()->info();
             $runIds[] = $ret['run_id'];
         }
         $uniqueRunIds = array_unique($runIds);
@@ -130,18 +130,19 @@ EOT
     {
         $redis = new Redis();
         // total_connections_received: 累積接続コネクション数
-        $addressList = gethostbynamel('redis-slave1');
+        $addressList = gethostbynamel('redis-replica1');
         $this->assertCount(4, $addressList,
             <<< EOT
 You must run this test with the following command:
-docker-compose up -d --scale redis-slave1=4 redis-slave1
+docker-compose up -d --scale redis-replica1=4 redis-replica1
 docker-compose run --rm phpunit-full
 EOT
         );
 
         $runIds = [];
         for ($i = 0; $i < 100; $i++) {
-            $ret = $redis->pconnect('redis-slave1');
+            $redis->pconnect('redis-replica1');
+            $ret = $redis->info();
             $runIds[] = $ret['run_id'];
         }
         $uniqueRunIds = array_unique($runIds);

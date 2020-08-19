@@ -1,9 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace Wfs\MasterSlaveRedis\Tests\Small;
+namespace Wfs\PrimaryReplicaRedis\Tests\Small;
 
 use Closure;
-use Wfs\MasterSlaveRedis\ConfigManipulator;
+use Wfs\PrimaryReplicaRedis\ConfigManipulator;
 use PHPUnit\Framework\TestCase;
 
 class ConfigManipulatorTest extends TestCase
@@ -138,56 +138,56 @@ class ConfigManipulatorTest extends TestCase
         return [
             [[], false, false],
             [[
-                'master' => $validHostConfig,
+                'primary' => $validHostConfig,
             ], false, false],
             [[
-                'master' => $validHostConfig,
-                'slave' => 'string',
+                'primary' => $validHostConfig,
+                'replica' => 'string',
             ], false, false],
             [[
-                'master' => $validHostConfig,
-                'slave' => [],
+                'primary' => $validHostConfig,
+                'replica' => [],
             ], false, true],
             [[
-                'master' => $validHostConfigOnlyNecessaryKeys,
-                'slave' => [],
+                'primary' => $validHostConfigOnlyNecessaryKeys,
+                'replica' => [],
             ], false, true],
             [[
-                'master' => $invalidHostConfig,
-                'slave' => [],
+                'primary' => $invalidHostConfig,
+                'replica' => [],
             ], false, false],
             [[
-                'master' => $validHostConfig,
-                'slave' => [],
+                'primary' => $validHostConfig,
+                'replica' => [],
             ], false, true],
             [[
-                'master' => $validHostConfig,
-                'slave' => [
+                'primary' => $validHostConfig,
+                'replica' => [
                     $validHostConfig,
                 ],
             ], false, true],
             [[
-                'master' => $validHostConfig,
-                'slave' => [
+                'primary' => $validHostConfig,
+                'replica' => [
                     $validHostConfigOnlyNecessaryKeys,
                 ],
             ], false, true],
             [[
-                'master' => $validHostConfig,
-                'slave' => [
+                'primary' => $validHostConfig,
+                'replica' => [
                     $invalidHostConfig,
                 ],
             ], false, false],
             [[
-                'master' => $validHostConfig,
-                'slave' => [
+                'primary' => $validHostConfig,
+                'replica' => [
                     $validHostConfig,
                     $validHostConfigOnlyNecessaryKeys,
                 ],
             ], false, true],
             [[
-                'master' => $validHostConfig,
-                'slave' => [
+                'primary' => $validHostConfig,
+                'replica' => [
                     $validHostConfig,
                     $invalidHostConfig,
                 ],
@@ -197,52 +197,52 @@ class ConfigManipulatorTest extends TestCase
 
             [[], true, false],
             [[
-                'master' => $validHostConfig,
+                'primary' => $validHostConfig,
             ], true, false],
             [[
-                'master' => $validHostConfig,
-                'slave' => [],
+                'primary' => $validHostConfig,
+                'replica' => [],
             ], true, true],
             [[
-                'master' => $validHostConfigOnlyNecessaryKeys,
-                'slave' => [],
+                'primary' => $validHostConfigOnlyNecessaryKeys,
+                'replica' => [],
             ], true, false],
             [[
-                'master' => $invalidHostConfig,
-                'slave' => [],
+                'primary' => $invalidHostConfig,
+                'replica' => [],
             ], true, false],
             [[
-                'master' => $validHostConfig,
-                'slave' => [],
+                'primary' => $validHostConfig,
+                'replica' => [],
             ], true, true],
             [[
-                'master' => $validHostConfig,
-                'slave' => [
+                'primary' => $validHostConfig,
+                'replica' => [
                     $validHostConfig,
                 ],
             ], true, true],
             [[
-                'master' => $validHostConfig,
-                'slave' => [
+                'primary' => $validHostConfig,
+                'replica' => [
                     $validHostConfigOnlyNecessaryKeys,
                 ],
             ], true, false],
             [[
-                'master' => $validHostConfig,
-                'slave' => [
+                'primary' => $validHostConfig,
+                'replica' => [
                     $invalidHostConfig,
                 ],
             ], true, false],
             [[
-                'master' => $validHostConfig,
-                'slave' => [
+                'primary' => $validHostConfig,
+                'replica' => [
                     $validHostConfig,
                     $validHostConfigOnlyNecessaryKeys,
                 ],
             ], true, false],
             [[
-                'master' => $validHostConfig,
-                'slave' => [
+                'primary' => $validHostConfig,
+                'replica' => [
                     $validHostConfig,
                     $invalidHostConfig,
                 ],
@@ -267,11 +267,11 @@ class ConfigManipulatorTest extends TestCase
     public function testIsValidConfigOptionalArgs()
     {
         Closure::bind(function () {
-            $actual = ConfigManipulator::isValidConfig(['master' => ['host' => 'host-name'], 'slave' => []], false);
+            $actual = ConfigManipulator::isValidConfig(['primary' => ['host' => 'host-name'], 'replica' => []], false);
             $this->assertTrue($actual);
-            $actual = ConfigManipulator::isValidConfig(['master' => ['host' => 'host-name'], 'slave' => []], true);
+            $actual = ConfigManipulator::isValidConfig(['primary' => ['host' => 'host-name'], 'replica' => []], true);
             $this->assertFalse($actual);
-            $actual = ConfigManipulator::isValidConfig(['master' => ['host' => 'host-name'], 'slave' => []]);
+            $actual = ConfigManipulator::isValidConfig(['primary' => ['host' => 'host-name'], 'replica' => []]);
             $this->assertTrue($actual);
         }, $this, ConfigManipulator::class)->__invoke();
     }
@@ -342,25 +342,25 @@ class ConfigManipulatorTest extends TestCase
         }, $this, ConfigManipulator::class)->__invoke();
     }
 
-    public function testPickupMasterConfigWithoutInvalidConfig()
+    public function testPickupPrimaryConfigWithoutInvalidConfig()
     {
         $this->expectException(\InvalidArgumentException::class);
-        ConfigManipulator::pickupMasterConfig([]);
+        ConfigManipulator::pickupPrimaryConfig([]);
     }
-    public function testPickupMasterConfig()
+    public function testPickupPrimaryConfig()
     {
-        $actual = ConfigManipulator::pickupMasterConfig([
-            'master' => [
-                'host' => 'master-host',
+        $actual = ConfigManipulator::pickupPrimaryConfig([
+            'primary' => [
+                'host' => 'primary-host',
             ],
-            'slave' => [
+            'replica' => [
                 [
-                    'host' => 'slave-host',
+                    'host' => 'replica-host',
                 ]
             ]
         ]);
         $expected = [
-            'host' => 'master-host',
+            'host' => 'primary-host',
             'port' => ConfigManipulator::DEFAULT_PORT,
             'timeout' => ConfigManipulator::DEFAULT_TIMEOUT,
         ];
@@ -369,20 +369,20 @@ class ConfigManipulatorTest extends TestCase
         $this->assertSame($expected, $actual);
     }
 
-    public function testPickupSlaveConfigWithSlave()
+    public function testPickupReplicaConfigWithReplica()
     {
-        $actual = ConfigManipulator::pickupSlaveConfig([
-            'master' => [
-                'host' => 'master-host',
+        $actual = ConfigManipulator::pickupReplicaConfig([
+            'primary' => [
+                'host' => 'primary-host',
             ],
-            'slave' => [
+            'replica' => [
                 [
-                    'host' => 'slave-host',
+                    'host' => 'replica-host',
                 ]
             ]
         ]);
         $expected = [
-            'host' => 'slave-host',
+            'host' => 'replica-host',
             'port' => ConfigManipulator::DEFAULT_PORT,
             'timeout' => ConfigManipulator::DEFAULT_TIMEOUT,
         ];
@@ -392,17 +392,17 @@ class ConfigManipulatorTest extends TestCase
 
     }
 
-    public function testPickupSlaveConfigWithoutSlave()
+    public function testPickupReplicaConfigWithoutReplica()
     {
-        $actual = ConfigManipulator::pickupSlaveConfig([
-            'master' => [
-                'host' => 'master-host',
+        $actual = ConfigManipulator::pickupReplicaConfig([
+            'primary' => [
+                'host' => 'primary-host',
             ],
-            'slave' => [
+            'replica' => [
             ]
         ]);
         $expected = [
-            'host' => 'master-host',
+            'host' => 'primary-host',
             'port' => ConfigManipulator::DEFAULT_PORT,
             'timeout' => ConfigManipulator::DEFAULT_TIMEOUT,
         ];

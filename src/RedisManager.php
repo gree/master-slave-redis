@@ -1,6 +1,8 @@
-<?php declare(strict_types=1);
+<?php
 
-namespace Wfs\MasterSlaveRedis;
+declare(strict_types=1);
+
+namespace Wfs\PrimaryReplicaRedis;
 
 class RedisManager
 {
@@ -57,11 +59,12 @@ class RedisManager
      * @return \Redis
      * @throws RedisManagerException
      */
-    public function getMaster(int $retry = self::DEFAULT_RETRY_NUM,
-                              int $retry_interval = self::DEFAULT_RETRY_INTERVAL): \Redis
-    {
-        $master = ConfigManipulator::pickupMasterConfig($this->config);
-        return $this->connect($master, $retry, $retry_interval);
+    public function getPrimary(
+        int $retry = self::DEFAULT_RETRY_NUM,
+        int $retry_interval = self::DEFAULT_RETRY_INTERVAL
+    ): \Redis {
+        $primary = ConfigManipulator::pickupPrimaryConfig($this->config);
+        return $this->connect($primary, $retry, $retry_interval);
     }
 
     /**
@@ -70,10 +73,11 @@ class RedisManager
      * @return \Redis
      * @throws RedisManagerException
      */
-    public function getSlave(int $retry = self::DEFAULT_RETRY_NUM,
-                             int $retry_interval = self::DEFAULT_RETRY_INTERVAL): \Redis
-    {
-        $slave = ConfigManipulator::pickupSlaveConfig($this->config);
-        return $this->connect($slave, $retry, $retry_interval);
+    public function getReplica(
+        int $retry = self::DEFAULT_RETRY_NUM,
+        int $retry_interval = self::DEFAULT_RETRY_INTERVAL
+    ): \Redis {
+        $replica = ConfigManipulator::pickupReplicaConfig($this->config);
+        return $this->connect($replica, $retry, $retry_interval);
     }
 }
